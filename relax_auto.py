@@ -85,7 +85,7 @@ except:
 
     open('qn.log','w').write('kpts = (%i,%i,%i); run = %i; image = 0\n' %(kpts[0],kpts[1],kpts[2],run))
 
-    atoms.rattle(stdev=0.1)
+    atoms.rattle(stdev=0.05)
 
 calc = espresso(pw=pw,
                 dw=dw,
