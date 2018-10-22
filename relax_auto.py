@@ -85,22 +85,13 @@ except:
 
     open('qn.log','w').write('kpts = (%i,%i,%i); run = %i; image = 0\n' %(kpts[0],kpts[1],kpts[2],run))
 
-    #atoms.rattle(stdev=0.1)
-    
-    if [atom.magmom for atom in atoms] == [0]*len(atoms):
-        ##Set initial magmom here##
-        for atom in atoms:
-            if atom.symbol == 'H':
-                atom.magmom = 1
-            else: 
-                atom.magmom = 2
+    atoms.rattle(stdev=0.1)
 
 calc = espresso(pw=pw,
                 dw=dw,
                 kpts=kpts,
                 xc = xc,
                 psppath = psppath,
-                spinpol=True,
                 outdir='outdir',
                 convergence = {'energy':1e-5,
                                'mixing':0.1,
@@ -112,89 +103,6 @@ calc = espresso(pw=pw,
                 dipole=dipole)
 
 calc.nbands = int(-1*calc.get_nvalence()[0].sum()/5.)
-val_dict = calc.get_nvalence()[1]
-
-for atom in atoms:
-    if val_dict[atom.symbol] < 2.5:
-        atom.magmom = val_dict[atom.symbol]
-    else:
-        atom.magmom = 2.5
-
-def reduce_magmoms(atoms,ntypx = 10):
-    """
-    Reduce the number of unique magnetic moments by combining those that are 
-    most similar among atoms with the same atomic symbol. This is necessary for
-    atoms objects with more than 10 types of magmom/symbol pairs because QE only
-    accepts a maximum of 10 types of atoms.
-    """
-    syms = set(atoms.get_chemical_symbols())
-
-    master_dict = {}
-    for sym in syms:
-        master_dict[sym] = {}
-
-    for atom in atoms:
-        if atom.magmom in master_dict[atom.symbol]:
-            master_dict[atom.symbol][atom.magmom].append(atom.index)
-        else:
-            master_dict[atom.symbol][atom.magmom] = [atom.index]
-
-    ntyp = 0
-    for sym in syms:
-        ntyp += len(master_dict[sym].keys())
-
-    while ntyp > ntypx:
-        magmom_pairs = {}
-        for sym in syms:
-            magmoms = master_dict[sym].keys()
-            if not len(magmoms) > 1: continue
-            min_delta = 1e6
-            min_pair = ()
-            for i,magmom1 in enumerate(magmoms):
-                for j,magmom2 in enumerate(magmoms):
-                    if not i < j: continue
-                    delta = np.abs(magmom1 - magmom2)
-                    if delta < min_delta:
-                        min_delta = delta
-                        min_pair = (magmom1,magmom2)
-            
-            assert min_delta != 1e6
-            assert min_pair != ()
-            magmom_pairs[sym] = min_pair
-        
-        min_delta = 1e6
-        min_sym = ""
-        for sym in magmom_pairs:
-            delta = np.abs(magmom_pairs[sym][0] - magmom_pairs[sym][1])
-            if delta < min_delta:
-                min_delta = delta
-                min_sym = sym
-
-        assert min_delta != 1e6
-        assert min_sym != ""
-        if min_delta > 0.5:
-            print "WARNING, reducing pair of magmoms whose difference is %.2f"%min_delta
-
-        if np.abs(magmom_pairs[min_sym][0]) > np.abs(magmom_pairs[min_sym][1]):
-            master_dict[min_sym][magmom_pairs[min_sym][0]].extend(
-                    master_dict[min_sym][magmom_pairs[min_sym][1]])
-            del master_dict[min_sym][magmom_pairs[min_sym][1]]
-        else:
-            master_dict[min_sym][magmom_pairs[min_sym][1]].extend(
-                    master_dict[min_sym][magmom_pairs[min_sym][0]])
-            del master_dict[min_sym][magmom_pairs[min_sym][0]]
-
-        ntyp = 0
-        for sym in syms:
-            ntyp += len(master_dict[sym].keys())
-
-    #reassign magmoms
-    for sym in syms:
-        for magmom in master_dict[sym]:
-            for index in master_dict[sym][magmom]:
-                atoms[index].magmom = magmom
-
-reduce_magmoms(atoms)
 
 atoms.set_calculator(calc)
 qn = QuasiNewton(atoms,logfile = 'qn.log',force_consistent=False)
@@ -202,39 +110,6 @@ qn = QuasiNewton(atoms,logfile = 'qn.log',force_consistent=False)
 ####################################
 ##Functions to attach to optimizer##
 ####################################
-
-def estimate_magmom():
-    """
-    Estimate magmom from log file (based on charge spheres centered on atoms) and assign to 
-    atoms object to assist with calculation restart upon unexpected interruption
-    """
-    f = open('outdir/log')
-    lines = f.readlines()
-    f.close()
-
-    i = len(lines) - 1
-    while True:
-        if i == 0: raise IOError("Could not identify espresso magmoms")
-        line = lines[i].split()
-        if len(line) > 3:
-            if line[0] == "absolute":
-                abs_magmom = float(line[3])
-        if len(line) > 6:
-            if line[4] == "magn:":
-                i -= len(atoms) - 1
-                break
-        i -= 1
-    
-    if abs_magmom < 1e-3:
-        for atom in atoms:
-            atom.magmom = 0
-    else:
-        total_esp_magmom = 0
-        for j in range(len(atoms)):
-            total_esp_magmom += np.abs(float(lines[i+j].split()[5]))
-
-        for j in range(len(atoms)):
-            atoms[j].magmom = float(lines[i+j].split()[5])*abs_magmom/total_esp_magmom
 
 def StopCalc():
     now = time.time()
@@ -257,11 +132,11 @@ if run > 0:
     qn.replay_trajectory('qn.traj')
 qn.run(fmax=0.05)
 
-pdos.pdos(atoms,outdir='outdir',spinpol=True,save_pkl=save_pdos_pkl,
+pdos.pdos(atoms,outdir='outdir',spinpol=False,save_pkl=save_pdos_pkl,
         Emin=-20,Emax=20,kpts=(kpts[0]*3,kpts[1]*3,1),DeltaE=0.01,
         nscf=True)
 
-bader.bader(atoms,outdir='outdir',spinpol=True,save_cube=save_cube,save_cd=save_cd)
+bader.bader(atoms,outdir='outdir',spinpol=False,save_cube=save_cube,save_cd=save_cd)
 
 #Calculate Work Function
 wf = calc.get_work_function(pot_filename="pot.xsf", edir=3)

@@ -3,7 +3,8 @@ import os
 import glob
 
 submit = False
-bulk_dir = '??'
+bulk_dir = '/home/users/alatimer/work_dir/cs229-PDOS-ML/bulk/'
+vac = ??
 adsorbates = ['CH3','CH2','CH','C','NH','NH2','OH','O','CO','NO']
 cell_sizes = {
         'FCC':{
@@ -57,7 +58,10 @@ def new_dir(d):
     return
 
 def build_surf(struct,comp,facet,cell_size):
-    bulk = read(bulk_dir + '/%s_%s'%(struct,comp))
+    #first check if lattice opt terminated successfully
+    if len(open(bulk_dir + '/%s_%s/nospin/myjob.out'%(struct,comp)).readlines()) <= 1:
+        return None
+    bulk = read(bulk_dir + '/%s_%s/nospin/out.traj'%(struct,comp))
     surf = surface(bulk,(facet[0],facet[1],facet[2]),cell_size[2],vacuum=vac)
     surf = surf.repeat((cell_size[0],cell_size[1],1))
     return surf
@@ -76,6 +80,13 @@ def add_ads(surf,facet,ads,site):
     """
     Add ads (string) to surf
     """
+    ads_atoms = read('%s.traj'%ads)
+    bonding_atom = [atom.]
+    
+    surf += ads_atoms
+    ads_atoms
+
+def _get_bonding_atom_index(ads):
 
 
 def constrain_ads(surf,facet,ads,site):
@@ -96,7 +107,7 @@ def submit(submit=False):
             if job.strip() == os.getcwd():
                 return
    
-    os.system('sbatch relaxSP_auto.py')
+    os.system('sbatch relax_auto.py')
 
 
 for struct in comps:
@@ -112,12 +123,13 @@ for struct in comps:
                     for site in sites[struct][facet]:
                         new_dir(site)
                         surf = build_surf(struct,comp,facet,cell_size)
+                        if surf == None: 
+                            os.chdir(home); continue
                         constrain_surf(surf)
                         add_ads(surf,ads,site)
                         constrain_ads(surf,ads)
 
                         surf.write('init.traj')
-                        os.system('cp %s/relaxSP_auto.py .'%home)
                         submit(submit=submit)
 
                         os.chdir(home)
