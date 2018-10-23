@@ -58,7 +58,7 @@ psppath = '/scratch/users/colinfd/psp/gbrv'
 #Auto restart parameters
 avg_iter = 5. #Hours/iteration, too high and you may miss an ionic step, too low and the restart won't work
 maxtime = 48. #Time limit on job in hours
-restart_command = "/usr/bin/sbatch relaxSP_auto.py"
+restart_command = "/usr/bin/sbatch relax_auto.py"
 
 #Output options
 save_pdos_pkl = True
