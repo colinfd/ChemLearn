@@ -178,8 +178,7 @@ def submit(submit=False):
     
     #check if job is already in the queue or is running
     for user in ['colinfd','alatimer']:
-        current_jobs = os.popen('squeue -u %s -o "%%Z"'%user).readlines()[1:]
-        for job in current_jobs:
+        for job in current_jobs[user]:
             if job.strip() == os.getcwd():
                 return
    
@@ -187,6 +186,10 @@ def submit(submit=False):
     if submit:
         os.system('sbatch relax_auto.py')
 
+#Get current jobs
+current_jobs = {}
+for user in ['colinfd','alatimer']:
+    current_jobs[user] = os.popen('squeue -u %s -o "%%Z"'%user).readlines()[1:]
 
 for struct in comps:
     for comp in comps[struct]:
