@@ -87,12 +87,16 @@ except:
 
     atoms.rattle(stdev=0.05)
 
+for atom in atoms:
+    atom.magmom = 0
+
 calc = espresso(pw=pw,
                 dw=dw,
                 kpts=kpts,
                 xc = xc,
                 psppath = psppath,
                 outdir='outdir',
+                spinpol=False,
                 convergence = {'energy':1e-5,
                                'mixing':0.1,
                                'nmix':10,
@@ -102,9 +106,10 @@ calc = espresso(pw=pw,
                 output = {'removesave':True},
                 dipole=dipole)
 
-calc.nbands = int(-1*calc.get_nvalence()[0].sum()/5.)
-
 atoms.set_calculator(calc)
+calc.atoms2species()
+calc.nbands = int(-1*calc.get_nvalence()[0].sum()/5.) #40% extra bands
+
 qn = QuasiNewton(atoms,logfile = 'qn.log',force_consistent=False)
 
 ####################################
@@ -114,7 +119,6 @@ qn = QuasiNewton(atoms,logfile = 'qn.log',force_consistent=False)
 def StopCalc():
     now = time.time()
     if maxtime - (now - starttime)/3600. < avg_iter:
-        pdos.pdos(atoms,outdir='outdir',spinpol=True) #update magmom from pdos for helping in calc restart
         traj.write()
         if rank == 0:
             open('auto_restart','a').write("Run %i ended on " %(run) + time.strftime('%m/%d/%Y\t%H:%M:%S') + " after %4.2f hours" %((now-starttime)/3600.) + '\n')
@@ -123,7 +127,6 @@ def StopCalc():
 
 ####################################
 
-qn.attach(estimate_magmom)
 qn.attach(traj)
 qn.attach(StopCalc)
 starttime = time.time()
