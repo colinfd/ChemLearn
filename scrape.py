@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+#SBATCH -p owners,iric,normal
+#SBATCH --output=myjob.out
+#SBATCH --error=myjob.err
+#SBATCH --time=03:00:00
+
 import glob
 from ase.io import read,write
 import pickle
@@ -72,7 +78,7 @@ def get_pdos(directory,atoms):
     for key in pdos[2][index]:
         total_pdos +=np.array(pdos[2][index][key][0])
     
-    print index,atoms[index].symbol
+    #print index,atoms[index].symbol
     return eng, total_pdos
 
 def add_line(directory,txt,delim,n=0,lines=None):
@@ -101,8 +107,8 @@ def add_line(directory,txt,delim,n=0,lines=None):
     #Check if already in DB
     if lines != None:
         for line in lines:
-            key = [composition, bulk_structure, facet, cell_size, adsorbate, site]
-            if delim.join(key) in line:
+            key = delim.join([composition, bulk_structure, facet, cell_size, adsorbate, site])
+            if line.startswith(key):
                 print "Already in DB: ",key
                 return 
     
@@ -111,7 +117,7 @@ def add_line(directory,txt,delim,n=0,lines=None):
     atoms_rel = read(directory+'/qn.traj')
     rmsd = get_RMSD(atoms_init,atoms_rel)
     eng_vec,pdos = get_pdos(directory,atoms_rel)
-    if n>0 and pdos!='NULL':
+    if n>0 and str(pdos)!='NULL':
         moments = get_moments(eng_vec,pdos,n)
         strmom = ''
         for m in moments:
@@ -139,14 +145,14 @@ def add_line(directory,txt,delim,n=0,lines=None):
     line = [composition, bulk_structure, facet, cell_size, adsorbate, site, 
         str(energy), str(WF), atoms_init_json, atoms_rel_json, str(rmsd), 
         strmom, str(list(eng_vec)), str(list(pdos)) ]
-    print line[0:-2]
+    #print line[0:-2]
     print >> txt, delim.join(line)
 
     return 
 
 if __name__ == '__main__':   
     #if making db for first time
-    initialize=True
+    initialize=False
     roots = ['../gases/*/nospin']
     roots.append('../surfaces/*/*/*/*/*/*')
     delim='\t'
@@ -155,7 +161,8 @@ if __name__ == '__main__':
         txt = open('rawdata.txt','w') #w if delete all
         strmom = ' '.join(['moment_%i'%(i) for i in range(n)])
         #headers = 'composition bulk_structure facet cell_size adsorbate site energy WF atoms_init_json atoms_rel_json rmsd moments eng_vec pdos'.replace(' ',delim)
-        headers = ('composition bulk_structure facet cell_size adsorbate site energy WF atoms_init_json atoms_rel_json rmsd %s eng_vec pdos'%(strmom)).replace(' ',delim)
+        #headers = ('composition bulk_structure facet cell_size adsorbate site energy WF atoms_init_json atoms_rel_json rmsd %s eng_vec pdos'%(strmom)).replace(' ',delim)
+        headers = ('comp bulk facet cell_size ads site eng WF atoms_init_json atoms_rel_json rmsd %s engs pdos'%(strmom)).replace(' ',delim)
         print >> txt, headers
         lines = None
     else:
@@ -163,7 +170,7 @@ if __name__ == '__main__':
         lines = open('rawdata.txt','r').readlines()
 
     for root in roots:
-        print root
+        #print root
         for direc in glob.glob(root):
             add_line(direc,txt,delim,n,lines)
 
