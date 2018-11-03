@@ -30,6 +30,8 @@ def valid_pair(row):
             return False
     else:
         #If first element (binding element) equal, may be good
+        if row['site_a']!= row['site_b']:
+            return False
         if ads_a[0] == ads_b[0]:
             comp_a = Counter(string2symbols(ads_a))
             comp_b = Counter(string2symbols(ads_b))
@@ -76,7 +78,7 @@ if __name__=='__main__':
     #gdf.drop(['index'],axis=1,inplace=True)  
     
     #Join gdf on df again for pair finding
-    key = ['comp','bulk','facet','cell_size','site']
+    key = ['comp','bulk','facet','cell_size']
     gdf.set_index(key)
     gdf = gdf.join(df.set_index(key),lsuffix='_a',rsuffix='_b',on=key)
     
@@ -84,15 +86,17 @@ if __name__=='__main__':
     for i in range(10):
         gdf.drop(['moment_%s_b'%(i)],axis=1,inplace=True)
     
-    gdf.dropna(inplace=True)
+    #gdf.dropna(inplace=True)
     
     gdf = gdf[gdf.apply(valid_pair,axis=1)]
 
     gdf['dE'] = gdf['eng_b']-gdf['eng_a'] - gdf['eng_g']
 
-    key = ['comp','bulk','facet','cell_size','site','ads_a','ads_b']
+    key = ['comp','bulk','facet','cell_size','site_b','ads_a','ads_b']
     gdf.reset_index(inplace=True)
     gdf.drop(['index'],inplace=True,axis=1)
+
+    gdf.sort_values(key,inplace=True)
 
     gdf.to_pickle('pairs.pkl')
 

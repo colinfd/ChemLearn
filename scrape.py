@@ -154,7 +154,8 @@ if __name__ == '__main__':
     #if making db for first time
     initialize=False
     roots = ['../gases/*/nospin']
-    roots.append('../surfaces/*/*/*/*/*/*')
+    #roots.append('../surfaces/*/*/*/*/*/*')
+    roots.append('/home/users/colinfd/scratch/CS229_project/ChemLearn/surfaces/*/*/*/*/*/*')
     delim='\t'
     n=10
     if initialize == True:
