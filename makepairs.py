@@ -62,6 +62,9 @@ if __name__=='__main__':
     gases = df[df['bulk']=='gas'].copy()
     gas_list = [gas for gas in gases['comp']]
     gases.drop(['bulk','facet','cell_size','site','ads'],axis=1,inplace=True)
+
+    #Remove gas entries from df
+    df = df[df['bulk']!='gas']
     
     #Cross join on full DF & clean up
     df['dummy'] = 'foo'
@@ -70,12 +73,6 @@ if __name__=='__main__':
     gases.drop(['dummy'],axis=1,inplace=True)
     gdf.drop(['dummy'],axis=1,inplace=True)
     df.drop(['dummy'],axis=1,inplace=True)
-    #print gdf.info()
-    #exit()
-    #gdf.reset_index(inplace=True)
-    #gases.reset_index(inplace=True)
-    #gdf.drop(['dummy'],axis=1,inplace=True)
-    #gdf.drop(['index'],axis=1,inplace=True)  
     
     #Join gdf on df again for pair finding
     key = ['comp','bulk','facet','cell_size']
@@ -85,8 +82,6 @@ if __name__=='__main__':
     #Can drop moments for adsorbate_b bc will always be final state
     for i in range(10):
         gdf.drop(['moment_%s_b'%(i)],axis=1,inplace=True)
-    
-    #gdf.dropna(inplace=True)
     
     gdf = gdf[gdf.apply(valid_pair,axis=1)]
 
