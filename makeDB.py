@@ -58,15 +58,23 @@ def get_coord(row):
     else:
         raise Exception(row)
 
-def get_RMSD(row,norm=True,slab_only=True):
+def get_RMSD(row,norm=True,inc_atoms='slab'):
     a = row['atoms_init']
     b = row['atoms']
+    ads_indices = row['ads_indices']
     if row['bulk'] == 'gas':
         return np.NaN
-    #need to include functionality later
-    #if slab_only ==True:
-    d = np.linalg.norm(a.positions-b.positions,axis=1)
-    if norm==True:
+    posns = a.positions - b.positions
+    if inc_atoms =='slab':
+        ind = np.ones(len(a),bool)
+        ind[ads_indices] = False
+        posns = posns[ind]
+    elif inc_atoms == 'ads':
+        if len(ads_indices)<1:
+            return np.NaN
+        posns = posns[ads_indices]
+    d = np.linalg.norm(posns,axis=1)
+    if norm==True and inc_atoms!='ads':
         lattice = np.min(a.get_distances(0,range(1,len(a))))
         d/=lattice
     rmsd = np.sqrt(np.mean(d**2))
@@ -91,6 +99,8 @@ if __name__=='__main__':
 
     df['ads_indices'] = df.apply(get_ads_indices,axis=1)
     df['coord'] = df.apply(get_coord,axis=1)
-    df['rmsd_norm'] = df.apply(get_RMSD,axis=1)
+    df['rmsd_slab'] = df.apply(get_RMSD,axis=1)
+    df['rmsd_ads'] = df.apply(get_RMSD,axis=1,args=(False,'ads',))
+    df['rmsd'] = df.apply(get_RMSD,axis=1,args=(True,'all',))
     
     df.to_pickle('surfDB.pkl')
