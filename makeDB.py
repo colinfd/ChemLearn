@@ -58,6 +58,15 @@ def get_coord(row):
     else:
         raise Exception(row)
 
+def get_RMSD(a,b,norm=True,slab_only=True):
+    #need to include functionality later
+    #if slab_only ==True:
+    d = np.linalg.norm(a.positions-b.positions,axis=1)
+    if norm==True:
+        lattice = np.min(a.get_distances(0,range(1,len(a))))
+        d/=lattice
+    rmsd = np.sqrt(np.mean(d**2))
+    return rmsd
 
 if __name__=='__main__':
     #Read in rawdata as pd df
@@ -78,5 +87,6 @@ if __name__=='__main__':
 
     df['ads_indices'] = df.apply(get_ads_indices,axis=1)
     df['coord'] = df.apply(get_coord,axis=1)
+    df['rmsd_norm'] = df.apply(get_RMSD,axis=1)
     
     df.to_pickle('surfDB.pkl')
