@@ -58,7 +58,11 @@ def get_coord(row):
     else:
         raise Exception(row)
 
-def get_RMSD(a,b,norm=True,slab_only=True):
+def get_RMSD(row,norm=True,slab_only=True):
+    a = row['atoms_init']
+    b = row['atoms']
+    if row['bulk'] == 'gas':
+        return np.NaN
     #need to include functionality later
     #if slab_only ==True:
     d = np.linalg.norm(a.positions-b.positions,axis=1)
