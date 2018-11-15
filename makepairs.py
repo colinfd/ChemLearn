@@ -4,6 +4,7 @@ import pandas as pd
 from ase.atoms import string2symbols
 from collections import Counter
 import pickle
+from filters import *
 
 
 def valid_pair(row):
@@ -47,6 +48,13 @@ if __name__=='__main__':
     gases = df[df['bulk']=='gas'].copy()
     gas_list = [gas for gas in gases['comp']]
     gases.drop(['bulk','facet','cell_size','site','ads'],axis=1,inplace=True)
+
+    #apply filters
+    df = df[df.apply(check_coord,axis=1)]
+    df = df[df.apply(check_diss,axis=1)]
+    df = df[df.ads != 'ON']
+    df = df[df.ads != 'OC']
+    df = df[df.rmsd_slab < 0.125]
 
     #Remove gas entries from df
     df = df[df['bulk']!='gas']
