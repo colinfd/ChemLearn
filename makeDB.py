@@ -91,7 +91,9 @@ if __name__=='__main__':
         df = pd.read_csv(filename, sep='\t',dtype={'facet':str})
 
         if len(sys.argv) > 2 and sys.argv[2] == '-p':
-            pass
+            df['engs'] = df.apply(lambda x: eval(x.engs),axis=1)
+            df['pdos'] = df.apply(lambda x: eval(x.pdos),axis=1)
+            #currently returns [N U L L] for surfs that wont be used
         else:
             #Drop clunky pdos, eng_vec, shouldn't need unless training NNs
             df.drop(['pdos','engs'],axis=1,inplace=True)
