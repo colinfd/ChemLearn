@@ -81,13 +81,20 @@ def get_RMSD(row,norm=True,inc_atoms='slab'):
     return rmsd
 
 if __name__=='__main__':
+    """
+    -r rebuilds dataframe from rawdata.txt (reads from surfDB.pkl otherwise)
+    -p saves pdos spectra
+    """
     #Read in rawdata as pd df
     if len(sys.argv) > 1 and sys.argv[1] == '-r':
         filename ='rawdata.txt'
         df = pd.read_csv(filename, sep='\t',dtype={'facet':str})
-        
-        #Drop clunky pdos, eng_vec, shouldn't need unless training NNs
-        df.drop(['pdos','engs'],axis=1,inplace=True)
+
+        if len(sys.argv) > 2 and sys.argv[2] == '-p':
+            pass
+        else:
+            #Drop clunky pdos, eng_vec, shouldn't need unless training NNs
+            df.drop(['pdos','engs'],axis=1,inplace=True)
         
         #Read atoms objects and remove json columns
         df['atoms'] = df['atoms_rel_json'].apply(json2atoms)
@@ -103,4 +110,7 @@ if __name__=='__main__':
     df['rmsd_ads'] = df.apply(get_RMSD,axis=1,args=(False,'ads',))
     df['rmsd'] = df.apply(get_RMSD,axis=1,args=(True,'all',))
     
-    df.to_pickle('surfDB.pkl')
+    if len(sys.argv) > 2 and sys.argv[2] == '-p':
+        df.to_pickle('surfDB_pdos.pkl')
+    else:
+        df.to_pickle('surfDB.pkl')

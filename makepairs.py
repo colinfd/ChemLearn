@@ -5,6 +5,7 @@ from ase.atoms import string2symbols
 from collections import Counter
 import pickle
 from filters import *
+import sys
 
 
 def valid_pair(row):
@@ -41,8 +42,20 @@ def valid_pair(row):
             return False
 
 if __name__=='__main__':
+    """
+    -p includes pdos spectra
+    constraints on surfDB are applied here
+    """
+    
+    if len(sys.argv) > 1 and sys.argv[1] == '-p':
+        full_pdos = True
+    else:
+        full_pdos = False
 
-    df = pickle.load(open('surfDB.pkl'))
+    if full_pdos:
+        df = pickle.load(open('surfDB_pdos.pkl'))
+    else:
+        df = pickle.load(open('surfDB.pkl'))
     
     #Create new DF with gases only 
     gases = df[df['bulk']=='gas'].copy()
@@ -85,5 +98,8 @@ if __name__=='__main__':
     gdf.drop(['index'],inplace=True,axis=1)
 
     gdf.sort_values(key,inplace=True)
-
-    gdf.to_pickle('pairs.pkl')
+    
+    if full_pdos:   
+        gdf.to_pickle('pairs_pdos.pkl')
+    else:
+        gdf.to_pickle('pairs.pkl')
