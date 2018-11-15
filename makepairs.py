@@ -3,13 +3,8 @@ from ase.io import read,write
 import pandas as pd
 from ase.atoms import string2symbols
 from collections import Counter
+import pickle
 
-def json2atoms(json):
-    f = open('temp.json','w')
-    print >> f, json
-    f.close()
-    atoms = read('temp.json')
-    return atoms
 
 def valid_pair(row):
     ads_a = row['ads_a']
@@ -46,17 +41,7 @@ def valid_pair(row):
 
 if __name__=='__main__':
 
-    #Read in rawdata as pd df
-    filename ='rawdata.txt'
-    df = pd.read_csv(filename, sep='\t',dtype={'facet':str})
-    
-    #Drop clunky pdos, eng_vec, shouldn't need unless training NNs
-    df.drop([u'pdos',u'engs'],axis=1,inplace=True)
-    
-    #Read atoms objects and remove json columns
-    df['atoms'] = df['atoms_rel_json'].apply(json2atoms)
-    df['atoms_init'] = df['atoms_init_json'].apply(json2atoms)
-    df.drop(['atoms_rel_json','atoms_init_json'],axis=1,inplace=True)
+    df = pickle.load(open('surfDB.pkl'))
     
     #Create new DF with gases only 
     gases = df[df['bulk']=='gas'].copy()
@@ -94,8 +79,3 @@ if __name__=='__main__':
     gdf.sort_values(key,inplace=True)
 
     gdf.to_pickle('pairs.pkl')
-
-    #Filter out RMSD?
-
-
-
