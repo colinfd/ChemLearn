@@ -30,3 +30,31 @@ def check_coord(row,u_cut=0.05,l_cut=1.3):
     
     return True
 
+def check_diss(row,cutoff=1.25):
+    """
+    Checks to see if adsorbate has dissociated based on a cutoff bond length requirement.
+        cutoff - bond length cutoff in Angstroms. 
+            - adsorbates with any bond length above this cutoff will return False
+        Returns False if:
+            - any bond length in adsorbate > cutoff
+        Return True if:
+            - any bond length in adsorbate < cutoff
+            - row corresponds to gas, clean surface, or single atom adsorbate
+    """
+    atoms = row['atoms']
+    ads_ind = row['ads_indices']
+    if row['bulk'] == 'gas':
+        return True
+    if len(ads_ind) < 2:
+        return True
+    for ai in ads_ind[1:]:
+        dist = np.linalg.norm(atoms[ai].position - atoms[ads_ind[0]].position)
+        if dist > cutoff:
+            return False
+    return True
+
+if __name__ == '__main__':
+    import pickle
+    df = pickle.load(open('surfDB.pkl','r'))
+    fdf = df[df.apply(check_diss,axis=1)]
+    gdf = fdf[fdf.apply(check_coord,axis=1)]
