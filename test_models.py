@@ -21,6 +21,16 @@ def train_prep_moms(df):
     #df['moment_1_a'] -= df['WF_a']
     #df['moment_1_g'] -= df['WF_g']
     
+    #print(df['moment_0_a'].iloc[105],df['coord_b'].iloc[105],df['site_a'].iloc[105])
+    #for i in range(df.shape[0]):
+    #    row = df.iloc[i]
+    #    print(row['moment_0_a'],row['coord_b'])
+    #    row['moment_0_a']*= row['coord_b']
+    #    print(row['moment_0_a'],row['coord_b'])
+    
+    df['moment_0_a'] = df.apply(multiply_zeroth_mom,axis=1)
+
+    #X = df[['moment_1_a']].values
     X = df[moms].values
 
     return X,y
@@ -103,33 +113,40 @@ def multiply_zeroth_mom(row):
     else:
         return row['moment_0_a']
 
-def evaluate(y,preds,model,tt='train'):
+def evaluate(y_train,train_preds,y_test,test_preds,model,features):
     
-    plt.figure()
-    plt.plot(y,preds,'.r',ms=3)
-    plt.title('%s %s: MAE = %.2f eV'%(model,tt,np.abs(y-preds).mean()))
+    plt.figure(figsize=(4,3))
+    plt.plot(y_train,train_preds,'.b',ms=3,label='train',alpha=0.5)
+    plt.plot(y_test,test_preds,'.r',ms=3,label='test',alpha=1)
+    plt.title('%s: Train MAE = %.2f eV; Test MAE = %.2f eV'%(model,np.abs(y_train-train_preds).mean(),np.abs(y_test-test_preds).mean()),fontsize=10)
 
     xlim = plt.gca().get_xlim()
     ylim = plt.gca().get_ylim()
     
-    plt.plot(xlim,xlim,'-k',lw=1)
-    plt.gca().set_xlim(xlim)
+    alim = (min(xlim[0],ylim[0]),max(xlim[1],ylim[1]))
+
+    plt.plot(alim,alim,'-k',lw=1)
+    plt.gca().set_ylim(alim)
+    plt.gca().set_xlim(alim)
 
     plt.xlabel('$\Delta E$ (eV)')
     plt.ylabel('$\Delta E$ Predicted (eV)')
 
-    plt.savefig(model+'_'+tt+'_parity.pdf')
+    plt.legend(loc='best')
 
-    plt.figure()
-    plt.hist(preds-y,bins=100)
-    plt.xlabel('$\hat{y} - y$ (eV)')
-    plt.title('%s %s: MAE = %.2f eV'%(model,tt,np.abs(y-preds).mean()))
+    plt.tight_layout()
+    plt.savefig('./output/'+model+'_'+features+'_'+split+'_parity.pdf')
 
-    xlim = np.array(plt.gca().get_xlim())
-    xmax = np.abs(xlim).max()
-    plt.gca().set_xlim([-xmax,xmax])
+    #plt.figure()
+    #plt.hist(preds-y,bins=100)
+    #plt.xlabel('$\hat{y} - y$ (eV)')
+    #plt.title('%s %s: MAE = %.2f eV'%(model,tt,np.abs(y-preds).mean()))
 
-    plt.savefig(model+'_'+tt+'_hist.pdf')
+    #xlim = np.array(plt.gca().get_xlim())
+    #xmax = np.abs(xlim).max()
+    #plt.gca().set_xlim([-xmax,xmax])
+
+    #plt.savefig('./output/'+model+'_'+features+'_'+split+'_'+tt+'_hist.pdf')
 
     return
 
@@ -137,9 +154,14 @@ if __name__ == '__main__':
     key = ['comp', 'bulk', 'facet', 'coord', 'site_b', 'ads_a', 'ads_b', 'comp_g', 'dE']
     df = pickle.load(open('pairs_pdos.pkl'))
 
-    models = ['RF','LinReg','GP','NN']
-    features = 'pdos' #'moments'
-    split = 'random'
+    #df = df[df['site_b']=='ontop'][df['ads_b']=='O'][df['ads_a'] == 's'][df['bulk'] == 'fcc'][df['comp'] != 'Sr'][df['comp'] != 'Ca'][df['comp'] != 'Pb'][df['facet'] == '111'][df['comp']!='Al']
+    #df = df[df['ads_b']=='OH'][df['ads_a'] == 'O']
+    #df = df[df['site_b']=='ontop']
+
+
+    models = ['RF','LinReg','GP']#,'NN']
+    features = 'moments' #pdos,'moments'
+    split = 'pairs'#'random'
 
     #Feature Selection
     if features == 'moments':
@@ -175,19 +197,19 @@ if __name__ == '__main__':
         elif m == 'LinReg':
             model = linear_model.LinearRegression()
         elif m == 'GP':
-            model = gaussian_process.GaussianProcessRegressor()
+            model = gaussian_process.GaussianProcessRegressor(normalize_y=True)
         elif m == 'NN':
             model = build_nn()
 
         print "Training Model"
         if m == 'NN':
-            model.fit(X_train,y_train,epochs=500)
+            model.fit(X_train,y_train,epochs=200)
         else:
             model.fit(X_train,y_train)
 
         print "Testing Model"
-        preds = model.predict(X_train).flatten()
-        evaluate(y_train,preds,m,tt='train')
+        train_preds = model.predict(X_train).flatten()
+        #evaluate(y_train,preds,m,tt='train')
 
-        preds = model.predict(X_test).flatten()
-        evaluate(y_test,preds,m,tt='test')
+        test_preds = model.predict(X_test).flatten()
+        evaluate(y_train, train_preds,y_test,test_preds,m,features)

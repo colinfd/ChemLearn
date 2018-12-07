@@ -80,6 +80,9 @@ def get_RMSD(row,norm=True,inc_atoms='slab'):
     rmsd = np.sqrt(np.mean(d**2))
     return rmsd
 
+#def list2columns(lst):
+    
+
 if __name__=='__main__':
     """
     -r rebuilds dataframe from rawdata.txt (reads from surfDB.pkl otherwise)
