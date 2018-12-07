@@ -2,12 +2,8 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from ase.visualize import view
-import seaborn as sns
-from sklearn import linear_model,ensemble,gaussian_process
 from sklearn.model_selection import train_test_split
 from scipy.interpolate import interp1d
-import tensorflow as tf
-from tensorflow import keras
 
 def train_prep(df,scale_zeroth_mom=True):
     y = df['dE'].values#.reshape(-1,1)
@@ -64,124 +60,72 @@ def train_prep_pdos(df,include_WF=True,stack=True):
     return X,y
 
 
-def is_fs_split(df,X,y,f=0.75):
+def is_fs_split(df,X,y,f_train=0.7,f_dev=0.15):
     """
-    Perform a train-test split such that there are no identical reactions
+    Perform a train-dev-test split such that there are no identical reactions
     in both the train and test sets from a composition stantdpoint. 
         e.g. Au + CO --> Au-CO can exist in the training set many times 
             (different facets, sites), but nowhere in the test set.
     """
     comp_a_b = df[['comp','ads_a','ads_b']].drop_duplicates()
-    split = int(comp_a_b.shape[0] * 0.75)
-    comp_a_b_train = comp_a_b.iloc[:split]
-    comp_a_b_test = comp_a_b.iloc[split:]
-
-    X_train = np.empty((0,X.shape[1]))
-    X_test = np.empty((0,X.shape[1]))
+    split1 = int(comp_a_b.shape[0] * f_train)
+    split2 = split1 + int(comp_a_b.shape[0] * f_dev)
+    comp_a_b_train = comp_a_b.iloc[:split1]
+    comp_a_b_dev = comp_a_b.iloc[split1:split2]
+    comp_a_b_test = comp_a_b.iloc[split2:]
+    
+    X_train = np.empty(X.shape[1:])[np.newaxis,...]
+    X_dev = np.empty(X.shape[1:])[np.newaxis,...]
+    X_test = np.empty(X.shape[1:])[np.newaxis,...]
     y_train = []
+    y_dev = []
     y_test = []
 
     for i in range(df.shape[0]):
         s = df.iloc[i]
         if len(comp_a_b_train[(comp_a_b_train.comp == s.comp) & (comp_a_b_train.ads_a == s.ads_a) \
                 & (comp_a_b_train.ads_b == s.ads_b)]) > 0:
-            X_train = np.vstack((X_train, X[i]))
+            X_train = np.vstack((X_train, X[i][np.newaxis,...]))
             y_train.append(y[i])
+        elif len(comp_a_b_dev[(comp_a_b_dev.comp == s.comp) & (comp_a_b_dev.ads_a == s.ads_a) \
+                & (comp_a_b_dev.ads_b == s.ads_b)]) > 0:
+            X_dev = np.vstack((X_dev, X[i][np.newaxis,...]))
+            y_dev.append(y[i])
         elif len(comp_a_b_test[(comp_a_b_test.comp == s.comp) & (comp_a_b_test.ads_a == s.ads_a) \
                 & (comp_a_b_test.ads_b == s.ads_b)]) > 0:
-            X_test = np.vstack((X_test, X[i]))
+            X_test = np.vstack((X_test, X[i][np.newaxis,...]))
             y_test.append(y[i])
         else:
             raise Exception()
 
     y_train = np.array(y_train)
+    y_dev = np.array(y_train)
     y_test = np.array(y_test)
 
-    return X_train, X_test, y_train, y_test
-
-def build_nn():
-    model = keras.Sequential([
-    keras.layers.Dense(64, activation=tf.nn.relu,
-                       input_shape=(X.shape[1],)),
-    keras.layers.Dense(64, activation=tf.nn.relu),
-    keras.layers.Dense(1)
-    ])
-
-    optimizer = tf.train.RMSPropOptimizer(0.001)
-
-    model.compile(loss='mse',
-                optimizer=optimizer,
-                metrics=['mae'])
-    return model
-
-key = ['comp', 'bulk', 'facet', 'coord', 'site_b', 'ads_a', 'ads_b', 'comp_g', 'dE']
-df = pickle.load(open('pairs_pdos.pkl'))
-
-#apply filters
-#df = df[df.coord_b == 1]
-#df = df[df.ads_a == 'C']
-#df = df[df.ads_b == 'CO']
-#df = df[df.bulk == 'fcc']
-
-#df['moment_0_a'] = df.apply(multiply_zeroth_mom,axis=1)
-
-#X,y = train_prep_pdos(df,include_WF=False,stack=True)
-X,y = train_prep(df)
-#np.savetxt('X.csv',X)
-#np.savetxt('y.csv',y)
-np.save('X.npy',X)
-np.save('y.npy',y)
-#X,y = train_prep(df)
-
-if True:
-    X_train = X
-    X_test = X
-    y_train = y
-    y_test = y
-elif False:
-    X_train,X_test,y_train,y_test = train_test_split(X,y)
-elif False:
-    X_train,X_test,y_train,y_test = is_fs_split(df,X,y)
-    print "%d training examples, %d test examples"%(len(y_train),len(y_test))
-else:
-    no_Au = (df.comp != 'Au').values
-    Au = (df.comp == 'Au').values
-    X_train = X[no_Au,:]
-    X_test = X[Au,:]
-    y_train = y[no_Au]
-    y_test = y[Au]
-
-#model = linear_model.LinearRegression()
-model = ensemble.RandomForestRegressor()
-#model = gaussian_process.GaussianProcessRegressor()
-#model = build_nn()
-
-print "Training Model"
-
-model.fit(X_train,y_train,epochs=500)
-
-print "Testing Model"
-preds = model.predict(X_test).flatten()
-plt.plot(y_test,preds,'.r',ms=3)
-plt.title('MAE = %.2f eV'%(np.abs(y_test-preds).mean()))
-
-xlim = plt.gca().get_xlim()
-ylim = plt.gca().get_ylim()
-
-plt.plot(xlim,xlim,'-k',lw=1)
-plt.gca().set_xlim(xlim)
+    return X_train[1:], X_dev[1:], X_test[1:], y_train, y_dev, y_test
 
 
-plt.xlabel('$\Delta E$ (eV)')
-plt.ylabel('$\Delta E$ Predicted (eV)')
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == '-p':
+        pdos = True
+    else:
+        pdos = False
 
-plt.figure()
-plt.hist(preds-y_test,bins=100)
-plt.xlabel('$\hat{y} - y$ (eV)')
-plt.title('MAE = %.2f eV'%(np.abs(y_test-preds).mean()))
+    if pdos:
+        df = pickle.load(open('pairs_pdos.pkl'))
+        X,y = train_prep_pdos(df,include_WF=False,stack=True)
+    else:
+        df = pickle.load(open('pairs.pkl'))
+        X,y = train_prep(df,scale_zeroth_mom=True)
 
-xlim = np.array(plt.gca().get_xlim())
-xmax = np.abs(xlim).max()
-plt.gca().set_xlim([-xmax,xmax])
+    X_train,X_dev,X_test,y_train,y_dev,y_test = is_fs_split(df,X,y)
+    np.save('X_train.npy',X_train)
+    np.save('X_dev.npy',X_dev)
+    np.save('X_test.npy',X_test)
+    np.save('y_train.npy',y_train)
+    np.save('y_dev.npy',y_dev)
+    np.save('y_test.npy',y_test)
 
-plt.show()
+    np.save('X.npy',X)
+    np.save('y.npy',y)
