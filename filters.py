@@ -55,6 +55,9 @@ def check_diss(row,cutoff=1.25):
 
 if __name__ == '__main__':
     import pickle
+    import matplotlib
+    import matplotlib.pyplot as plt
+    matplotlib.interactive(True)
     df = pickle.load(open('surfDB.pkl','r'))
-    fdf = df[df.apply(check_diss,axis=1)]
-    gdf = fdf[fdf.apply(check_coord,axis=1)]
+    df1 = df[df.apply(check_diss,axis=1)]
+    df2 = df1[df1.apply(check_coord,axis=1)]
