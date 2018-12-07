@@ -32,7 +32,7 @@ def train_prep_pdos(df,include_WF=True,stack=True):
     e_g_min = df.apply(lambda x: x.engs_g[0],axis=1).min()
     e_g_max = df.apply(lambda x: x.engs_g[-1],axis=1).max()
     
-    e_base = np.arange(min(e_a_min,e_g_min),max(e_g_max,e_a_max),0.01)
+    e_base = np.arange(min(e_a_min,e_g_min),max(e_g_max,e_a_max),0.1)
     
     if stack:
         X = np.zeros((df.shape[0],2,len(e_base)))
@@ -99,7 +99,7 @@ def is_fs_split(df,X,y,f_train=0.7,f_dev=0.15):
             raise Exception()
 
     y_train = np.array(y_train)
-    y_dev = np.array(y_train)
+    y_dev = np.array(y_dev)
     y_test = np.array(y_test)
 
     return X_train[1:], X_dev[1:], X_test[1:], y_train, y_dev, y_test
