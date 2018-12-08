@@ -129,8 +129,8 @@ df = pickle.load(open('pairs_pdos.pkl'))
 X,y = train_prep(df)
 #np.savetxt('X.csv',X)
 #np.savetxt('y.csv',y)
-np.save('X.npy',X)
-np.save('y.npy',y)
+np.save('data/X.npy',X)
+np.save('data/y.npy',y)
 #X,y = train_prep(df)
 
 if True:
