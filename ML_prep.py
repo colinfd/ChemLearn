@@ -109,8 +109,10 @@ if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == '-p':
         pdos = True
+        xtype = 'pdos'
     else:
         pdos = False
+        xtype = 'moments'
 
     if pdos:
         df = pickle.load(open('pairs_pdos.pkl'))
@@ -120,12 +122,12 @@ if __name__ == "__main__":
         X,y = train_prep(df,scale_zeroth_mom=True)
 
     X_train,X_dev,X_test,y_train,y_dev,y_test = is_fs_split(df,X,y)
-    np.save('data/X_train.npy',X_train)
-    np.save('data/X_dev.npy',X_dev)
-    np.save('data/X_test.npy',X_test)
-    np.save('data/y_train.npy',y_train)
-    np.save('data/y_dev.npy',y_dev)
-    np.save('data/y_test.npy',y_test)
+    np.save('data/X_train_%s.npy'%(xtype),X_train)
+    np.save('data/X_dev_%s.npy'%(xtype),X_dev)
+    np.save('data/X_test_%s.npy'%(xtype),X_test)
+    np.save('data/y_train_%s.npy'%(xtype),y_train)
+    np.save('data/y_dev_%s.npy'%(xtype),y_dev)
+    np.save('data/y_test_%s.npy'%(xtype),y_test)
 
-    np.save('data/X.npy',X)
-    np.save('data/y.npy',y)
+    np.save('data/X_%s.npy'%(xtype),X)
+    np.save('data/y_%s.npy'%(xtype),y)
