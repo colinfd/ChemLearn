@@ -37,7 +37,7 @@ def train_prep_pdos(df,include_WF=True,stack=True):
     if stack:
         X = np.zeros((df.shape[0],2,len(e_base)))
     else:
-        X = np.zeros((df.shape[0],len(e_base)))
+        X = np.zeros((df.shape[0],2*len(e_base)))
 
     
     for i in range(X.shape[0]):
