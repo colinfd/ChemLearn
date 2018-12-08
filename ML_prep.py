@@ -115,10 +115,10 @@ if __name__ == "__main__":
         xtype = 'moments'
 
     if pdos:
-        df = pickle.load(open('pairs_pdos.pkl'))
+        df = pickle.load(open('data/pairs_pdos.pkl'))
         X,y = train_prep_pdos(df,include_WF=False,stack=True)
     else:
-        df = pickle.load(open('pairs.pkl'))
+        df = pickle.load(open('data/pairs.pkl'))
         X,y = train_prep(df,scale_zeroth_mom=True)
 
     X_train,X_dev,X_test,y_train,y_dev,y_test = is_fs_split(df,X,y)

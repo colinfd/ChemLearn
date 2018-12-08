@@ -115,7 +115,7 @@ def build_nn():
     return model
 
 key = ['comp', 'bulk', 'facet', 'coord', 'site_b', 'ads_a', 'ads_b', 'comp_g', 'dE']
-df = pickle.load(open('pairs_pdos.pkl'))
+df = pickle.load(open('data/pairs_pdos.pkl'))
 
 #apply filters
 #df = df[df.coord_b == 1]
