@@ -5,6 +5,25 @@ from ase.visualize import view
 from sklearn.model_selection import train_test_split
 from scipy.interpolate import interp1d
 
+def add_noise(X,y,std_X = 0.1, std_y = 0.1,mult=2):
+    if len(X.shape)==2:
+        X_new = X.copy()
+        y_new = y.copy()
+        for i in range(mult-1):
+            noise_X = np.random.normal(0,std_X,X_new.shape[1])
+            X_add = X_new.copy()
+            X_add+=noise_X
+            X = np.append(X,X_add,axis=0)
+            noise_y = np.random.normal(0,std_y,y_new.shape[-1])
+            y_add = y_new.copy()
+            y_add +=noise_y
+            y = np.append(y,y_add)
+        return X,y
+    else:
+        print("Warning: Not yet implemented for stacked X")
+        return X,y
+    #elif len(X.shape)==3:
+
 def train_prep(df,scale_zeroth_mom=True):
     y = df['dE'].values#.reshape(-1,1)
     
@@ -24,7 +43,7 @@ def train_prep(df,scale_zeroth_mom=True):
 
     return X,y
 
-def train_prep_pdos(df,include_WF=True,stack=True):
+def train_prep_pdos(df,include_WF=True,stack=True,dE=0.1):
     y = df['dE'].values#.reshape(-1,1)
 
     e_a_min = df.apply(lambda x: x.engs_a[0],axis=1).min()
@@ -32,7 +51,7 @@ def train_prep_pdos(df,include_WF=True,stack=True):
     e_g_min = df.apply(lambda x: x.engs_g[0],axis=1).min()
     e_g_max = df.apply(lambda x: x.engs_g[-1],axis=1).max()
     
-    e_base = np.arange(min(e_a_min,e_g_min),max(e_g_max,e_a_max),0.1)
+    e_base = np.arange(min(e_a_min,e_g_min),max(e_g_max,e_a_max),dE)
     
     if stack:
         X = np.zeros((df.shape[0],2,len(e_base)))
