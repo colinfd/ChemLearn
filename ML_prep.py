@@ -24,12 +24,12 @@ def add_noise(X,y,std_X = 0.1, std_y = 0.1,mult=2):
         return X,y
     #elif len(X.shape)==3:
 
-def train_prep(df,scale_zeroth_mom=True):
+def train_prep(df,scale_zeroth_mom=True,include_WF=False):
     y = df['dE'].values#.reshape(-1,1)
     
     moms = [i for i in df.columns if 'mom' in i]
-    #moms.append('WF_a')
-    #moms.append('WF_b')
+    moms.append('WF_a')
+    moms.append('WF_b')
     #moms.append('coord')
     
     #df['moment_1_a'] -= df['WF_a']
@@ -78,10 +78,13 @@ def train_prep_pdos(df,include_WF=False,stack=False,dE=0.1):
     
     return X,y
 
-def split_by_cols(df,X,y,cols,f_train=0.7,f_dev=0.15):
+def split_by_cols(df,X,y,cols,f_train=0.7,f_dev=0.15,ret_groups=False):
     """
     Perform a train-dev-test split that is disjoint with respect to cols.
     i.e. df_train[i][cols] != df_val[i][cols] != df_test[i][cols] for all i
+
+    if ret_groups, also return a list containing group indices for each training
+    example, which can be used with GroupKFold.
     """
     df2 = df[cols].drop_duplicates().sample(frac=1)
     split1 = int(df2.shape[0] * f_train)
@@ -96,12 +99,16 @@ def split_by_cols(df,X,y,cols,f_train=0.7,f_dev=0.15):
     y_train = []
     y_dev = []
     y_test = []
+    
+    g_train = []
 
     for i in range(df.shape[0]):
         s = df.iloc[i]
-        if (df2_train[cols] == s[cols]).all(axis=1).sum() > 0:
+        train_bool = (df2_train[cols] == s[cols]).all(axis=1)
+        if train_bool.sum() > 0:
             X_train = np.vstack((X_train, X[i][np.newaxis,...]))
             y_train.append(y[i])
+            g_train.append(train_bool.idxmax())
         elif (df2_dev[cols] == s[cols]).all(axis=1).sum() > 0:
             X_dev = np.vstack((X_dev, X[i][np.newaxis,...]))
             y_dev.append(y[i])
@@ -114,8 +121,12 @@ def split_by_cols(df,X,y,cols,f_train=0.7,f_dev=0.15):
     y_train = np.array(y_train)
     y_dev = np.array(y_dev)
     y_test = np.array(y_test)
+    
+    ret = [X_train[1:], X_dev[1:], X_test[1:], y_train, y_dev, y_test]
+    if ret_groups:
+        ret.append(g_train)
 
-    return X_train[1:], X_dev[1:], X_test[1:], y_train, y_dev, y_test
+    return ret
 
 
 
