@@ -5,19 +5,7 @@ from ase.visualize import view
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-
-def check_diss(row,cutoff):
-    atoms = row['atoms']
-    ads_ind = row['ads_indices']
-    if row['bulk'] == 'gas':
-        return True
-    if len(ads_ind) < 2:
-        return True
-    for ai in ads_ind[1:]:
-        dist = np.linalg.norm(atoms[ai].position - atoms[ads_ind[0]].position)
-        if dist > cutoff:
-            return False
-    return True
+from filters import check_diss,check_coord
 
 def longest_bl(row):
     atoms = row['atoms']
@@ -39,18 +27,18 @@ def longest_bl(row):
         return np.NaN
 
 
-pkey = ['comp', 'bulk', 'facet', 'site', 'ads_a', 'ads_b', 'gas', 'dE']
+pkey = ['comp', 'bulk', 'facet', 'site_a','site_b', 'ads_a', 'ads_b', 'gas', 'dE']
 skey = ['comp', 'bulk', 'facet', 'site', 'ads']
 
-pdf = pickle.load(open('pairs.pkl'))
-df = pickle.load(open('surfDB.pkl'))
+pdf = pickle.load(open('data/pairs.pkl'))
+df = pickle.load(open('data/surfDB.pkl'))
 
 features = []
 for n in range(10):
     features.append('moment_%s_a'%(n))
     features.append('moment_%s_g'%(n))
 
-X_train,X_test,y_train,y_test = train_test_split(pdf[features],pdf['dE'])
+#X_train,X_test,y_train,y_test = train_test_split(pdf[features],pdf['dE'])
 
 df['bl'] = df.apply(longest_bl,axis=1)
 

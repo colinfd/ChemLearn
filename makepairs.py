@@ -53,9 +53,9 @@ if __name__=='__main__':
         full_pdos = False
 
     if full_pdos:
-        df = pickle.load(open('surfDB_pdos.pkl'))
+        df = pickle.load(open('data/surfDB_pdos.pkl'))
     else:
-        df = pickle.load(open('surfDB.pkl'))
+        df = pickle.load(open('data/surfDB.pkl'))
     
     #Create new DF with gases only 
     gases = df[df['bulk']=='gas'].copy()
@@ -100,6 +100,6 @@ if __name__=='__main__':
     gdf.sort_values(key,inplace=True)
     
     if full_pdos:   
-        gdf.to_pickle('pairs_pdos.pkl')
+        gdf.to_pickle('data/pairs_pdos.pkl')
     else:
-        gdf.to_pickle('pairs.pkl')
+        gdf.to_pickle('data/pairs.pkl')

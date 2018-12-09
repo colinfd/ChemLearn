@@ -58,6 +58,6 @@ if __name__ == '__main__':
     import matplotlib
     import matplotlib.pyplot as plt
     matplotlib.interactive(True)
-    df = pickle.load(open('surfDB.pkl','r'))
+    df = pickle.load(open('data/surfDB.pkl','r'))
     df1 = df[df.apply(check_diss,axis=1)]
     df2 = df1[df1.apply(check_coord,axis=1)]

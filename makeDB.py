@@ -107,7 +107,7 @@ if __name__=='__main__':
         df.drop(['atoms_rel_json','atoms_init_json'],axis=1,inplace=True)
 
     else:
-        df = pickle.load(open('surfDB.pkl'))
+        df = pickle.load(open('data/surfDB.pkl'))
 
     df['ads_indices'] = df.apply(get_ads_indices,axis=1)
     df['coord'] = df.apply(get_coord,axis=1)
@@ -116,6 +116,6 @@ if __name__=='__main__':
     df['rmsd'] = df.apply(get_RMSD,axis=1,args=(True,'all',))
     
     if len(sys.argv) > 2 and sys.argv[2] == '-p':
-        df.to_pickle('surfDB_pdos.pkl')
+        df.to_pickle('data/surfDB_pdos.pkl')
     else:
-        df.to_pickle('surfDB.pkl')
+        df.to_pickle('data/surfDB.pkl')
