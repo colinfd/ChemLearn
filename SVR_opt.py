@@ -12,6 +12,7 @@ from scipy.stats import randint as sp_randint
 from scipy.stats import uniform as sp_uniform
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
 
 def evaluate(model, test_features, test_labels):
     predictions = model.predict(test_features)
@@ -36,8 +37,7 @@ if __name__ == '__main__':
     np.random.seed(42)
     X_train,X_dev,X_test,y_train,y_dev,y_test,groups = split_by_cols(df,X,y,['comp','ads_a','ads_b'],ret_groups=True)
 	    
-    kr = KernelRidge(alpha=1.0)
-
+    model = SVR()
 
     group_kfold = GroupKFold(n_splits=3)
 
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     
     base_gamma = 1.0/X_train.shape[1]/X_train.std()
     print(base_gamma)
-
+    
     if bayes:
         random_grid = {
                 'alpha': (1,5,'log-uniform'),
@@ -66,13 +66,14 @@ if __name__ == '__main__':
             )
     else:
         random_grid = {
-                        'alpha': sp_uniform(0.0001,0.002),
+                        'C': (1e-3,1e-2,1e-1,1,10,100),
                         #'gamma':[1e-23,1e-24,1e-22,1e-21],#(0.001,0.01,0.1,1,10,100),
                         'gamma':[base_gamma*0.1, base_gamma,base_gamma*10],#(0.001,0.01,0.1,1,10,100),
-                        'kernel':['rbf']#,'linear','poly','cosine']
+                        'kernel':['rbf','linear','poly'],#,'cosine'],
+                        'epsilon':sp_uniform(0.1,0.9)
                         }
 
-        kr_random = RandomizedSearchCV(estimator=kr, 
+        model_random = RandomizedSearchCV(estimator=model, 
             param_distributions = random_grid, 
             n_iter = 300, 
             cv = group_kfold, 
@@ -82,9 +83,9 @@ if __name__ == '__main__':
             scoring='neg_mean_absolute_error',
             )
 
-    kr_random.fit(X_train, y_train,groups=groups)
-    print(features,kr_random.best_estimator_)
+    model_random.fit(X_train, y_train,groups=groups)
+    print(features,model_random.best_estimator_)
     X_dev = scaler.transform(X_dev)
-    evaluate(kr_random.best_estimator_, X_dev, y_dev)
-    evaluate(kr_random.best_estimator_, X_train, y_train)
+    evaluate(model_random.best_estimator_, X_dev, y_dev)
+    evaluate(model_random.best_estimator_, X_train, y_train)
     

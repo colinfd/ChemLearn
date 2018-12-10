@@ -23,6 +23,9 @@ df = pickle.load(open('data/pairs_pdos.pkl'))
 features = ['pdos']#,'pdos']# #pdos,'moments'
 models = ['rf']#['lr','rf']
 
+fig = plt.figure(figsize=(8,6))
+ax = fig.add_subplot(111)
+
 for feature in features:
     for m in models:
         if m == 'lr' and feature == 'pdos':
@@ -59,7 +62,11 @@ for feature in features:
         mae_dev = evaluate(model, X_dev, y_dev)
         mae_train = evaluate(model, X_train, y_train)
 
-        plt.bar(range(len(model.feature_importances_)),model.feature_importances_)
+        ax.axvline(200,ls='--',c='r',alpha=0.5)
+        ax.axvline(552,ls='--',c='r',alpha=0.5)
+        ax.bar(range(len(model.feature_importances_)),model.feature_importances_)
+        
+        #plt.bar(range(len(model.feature_importances_)),model.feature_importances_)
 
 
         #np.save('learning_curve/mae_train_%s_%s.npy'%(m, feature),mae_train)
@@ -69,13 +76,16 @@ for feature in features:
         #plt.plot(mae_train,label=m+' '+feature+' train')
 #plt.legend()
 #plt.ylim(0,1.5)
-plt.savefig('feature_importance/feature_importance_%s.pdf'%(feature))
+#plt.savefig('feature_importance/feature_importance_%s.pdf'%(feature))
 
-plt.clf()
+#plt.clf()
 
 if feature == 'pdos':
-    for i in range(20):
-        plt.plot(X_train[i])
+    #for i in range(20):
+    ax2 = ax.twinx()
+    ax2.plot(X_train.mean(axis=0),lw=.1)
+    ax2.set_ylim((0,7))
+    #plt.plot(X_train.mean(axis=0))
 
     plt.savefig('feature_importance/X1_%s.pdf'%(feature))
 

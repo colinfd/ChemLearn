@@ -8,6 +8,8 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GroupKFold
 from skopt import BayesSearchCV
 from scipy.stats import randint as sp_randint
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.preprocessing import StandardScaler
 
 def evaluate(model, test_features, test_labels):
     predictions = model.predict(test_features)
@@ -21,11 +23,11 @@ def evaluate(model, test_features, test_labels):
 df = pickle.load(open('data/pairs_pdos.pkl'))
 
 features = ['moments','pdos']# #pdos,'moments'
-models = ['lr','rf']
+models = ['lr','rf','krr']
 
 for feature in features:
     for m in models:
-        if m == 'lr' and feature == 'pdos':
+        if ( m == 'lr' or m == 'krr' ) and feature == 'pdos':
             continue
         
         if feature == 'moments':
@@ -52,6 +54,12 @@ for feature in features:
                     random_state=None, verbose=0, warm_start=False)
         elif m == 'lr':
             model = linear_model.LinearRegression()
+        elif m == 'krr':
+            scaler = StandardScaler()
+            scaler.fit(X_train)
+            X_train = scaler.transform(X_train)
+            X_dev = scaler.transform(X_dev)
+            model = KernelRidge(alpha=0.00089, coef0=1, degree=3, gamma=0.04545, kernel='rbf', kernel_params=None)
 
         num_examples = X_train.shape[0]
         mae_dev = np.zeros(10)

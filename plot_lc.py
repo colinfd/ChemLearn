@@ -9,11 +9,11 @@ from sklearn.model_selection import GroupKFold
 from skopt import BayesSearchCV
 from scipy.stats import randint as sp_randint
 
-features = ['pdos']#,'pdos']# #pdos,'moments'
-models_labels = ['Linear Regression','Random Forest','Boosting']
-models = ['lr','rf','boost']
+features = ['moments']#,'pdos']# #pdos,'moments'
+models_labels = ['Linear Regression','Random Forest','Boosting','Kernel RR']
+models = ['lr','rf','boost','krr']
 
-colors = cm.rainbow(np.linspace(0,1,4))
+colors = cm.rainbow(np.linspace(0,1,6))
 i = 0
 
 percent = range(10,101,10)
