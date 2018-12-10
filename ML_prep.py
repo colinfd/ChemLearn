@@ -24,16 +24,13 @@ def add_noise(X,y,std_X = 0.1, std_y = 0.1,mult=2):
         return X,y
     #elif len(X.shape)==3:
 
-def train_prep(df,scale_zeroth_mom=True,include_WF=False):
+def train_prep(df,scale_zeroth_mom=True,include_WF=True):
     y = df['dE'].values#.reshape(-1,1)
     
     moms = [i for i in df.columns if 'mom' in i]
-    moms.append('WF_a')
-    moms.append('WF_b')
-    #moms.append('coord')
-    
-    #df['moment_1_a'] -= df['WF_a']
-    #df['moment_1_g'] -= df['WF_g']
+    if include_WF:
+        moms.append('WF_a')
+        moms.append('WF_b')
     
     X = df[moms].values
     
@@ -52,6 +49,9 @@ def train_prep_pdos(df,include_WF=False,stack=False,dE=0.1):
     e_g_max = df.apply(lambda x: x.engs_g[-1],axis=1).max()
     
     e_base = np.arange(min(e_a_min,e_g_min),max(e_g_max,e_a_max),dE)
+    fermi = np.argmin(np.abs(e_base))
+    print "surface fermi level index = %d"%fermi
+    print "gas fermi level index = %d"%(fermi + len(e_base))
     
     if stack:
         X = np.zeros((df.shape[0],2,len(e_base)))
