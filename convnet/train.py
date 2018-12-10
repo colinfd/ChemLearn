@@ -94,7 +94,6 @@ else:
 		print('val: ', MSE, MAE)
 
 
-
 x_plot = np.arange(n_epochs) + 1
 plt.plot(x_plot, losses, label='Train Loss')
 plt.plot(x_plot, val_losses, '--', label='Validation Loss')

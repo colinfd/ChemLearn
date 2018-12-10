@@ -150,25 +150,27 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == '-p':
         pdos = True
         xtype = 'pdos'
+        stack = 'stacked'
     else:
         pdos = False
         xtype = 'moments'
+        stack = 'flat'
 
     if pdos:
         df = pickle.load(open('data/pairs_pdos.pkl'))
-        X,y = train_prep_pdos(df,include_WF=False,stack=False)
+        X,y = train_prep_pdos(df,include_WF=False,stack=True)
     else:
         df = pickle.load(open('data/pairs.pkl'))
         X,y = train_prep(df,scale_zeroth_mom=True)
 
     X_train,X_dev,X_test,y_train,y_dev,y_test = split_by_cols(df,X,y,['comp','ads_a','ads_b'])
-    np.save('data/X_train_%s.npy'%(xtype),X_train)
-    np.save('data/X_dev_%s.npy'%(xtype),X_dev)
-    np.save('data/X_test_%s.npy'%(xtype),X_test)
-    np.save('data/y_train_%s.npy'%(xtype),y_train)
-    np.save('data/y_dev_%s.npy'%(xtype),y_dev)
-    np.save('data/y_test_%s.npy'%(xtype),y_test)
+    np.save('data/X_train_%s_%s.npy'%(xtype,stack),X_train)
+    np.save('data/X_dev_%s_%s.npy'%(xtype,stack),X_dev)
+    np.save('data/X_test_%s_%s.npy'%(xtype,stack),X_test)
+    np.save('data/y_train_%s_%s.npy'%(xtype,stack),y_train)
+    np.save('data/y_dev_%s_%s.npy'%(xtype,stack),y_dev)
+    np.save('data/y_test_%s_%s.npy'%(xtype,stack),y_test)
 
-    np.save('data/X_%s.npy'%(xtype),X)
-    np.save('data/y_%s.npy'%(xtype),y)
+    np.save('data/X_%s_%s.npy'%(xtype,stack),X)
+    np.save('data/y_%s_%s.npy'%(xtype,stack),y)
     
