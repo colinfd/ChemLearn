@@ -50,8 +50,6 @@ def train_prep_pdos(df,include_WF=False,stack=False,dE=0.1):
     
     e_base = np.arange(min(e_a_min,e_g_min),max(e_g_max,e_a_max),dE)
     fermi = np.argmin(np.abs(e_base))
-    print "surface fermi level index = %d"%fermi
-    print "gas fermi level index = %d"%(fermi + len(e_base))
     
     if stack:
         X = np.zeros((df.shape[0],2,len(e_base)))
