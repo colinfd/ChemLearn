@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from scipy.interpolate import interp1d
 import tensorflow as tf
 from tensorflow import keras
-from ML_prep import train_prep_pdos,is_fs_split,train_prep
+from ML_prep import train_prep_pdos,split_by_cols,train_prep
 
 def build_nn():
     model = keras.Sequential([
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
 
     models = ['RF']#,'LinReg','GP']#,'NN']
-    features = 'pdos'# #pdos,'moments'
+    features = 'moments'# #pdos,'moments'
     split = 'pairs'#'random',pairs
 
     #Feature Selection
@@ -95,7 +95,9 @@ if __name__ == '__main__':
     elif split=='random':
         X_train,X_test,y_train,y_test = train_test_split(X,y) #need to add dev
     elif split=='pairs':
-        X_train,X_dev,X_test,y_train,y_dev,y_test = is_fs_split(df,X,y)
+        #X_train,X_dev,X_test,y_train,y_dev,y_test = is_fs_split(df,X,y)
+        np.random.seed(42)
+        X_train,X_dev,X_test,y_train,y_dev,y_test = split_by_cols(df,X,y,['comp','ads_a','ads_b'])
         print "%d training examples, %d test examples"%(len(y_train),len(y_test))
     elif split == 'au':
         no_Au = (df.comp != 'Au').values
@@ -107,7 +109,13 @@ if __name__ == '__main__':
     
     for m in models:
         if m == 'RF':
-            model = ensemble.RandomForestRegressor()
+            #model = ensemble.RandomForestRegressor()
+            model = ensemble.RandomForestRegressor(bootstrap=False, criterion='mse', max_depth=18,
+                    max_features=11, max_leaf_nodes=None, min_impurity_decrease=0.0,
+                    min_impurity_split=None, min_samples_leaf=2,
+                    min_samples_split=2, min_weight_fraction_leaf=0.0,
+                    n_estimators=100, n_jobs=None, oob_score=False,
+                    random_state=None, verbose=0, warm_start=False)
         elif m == 'LinReg':
             model = linear_model.LinearRegression()
         elif m == 'GP':
@@ -125,5 +133,5 @@ if __name__ == '__main__':
         train_preds = model.predict(X_train).flatten()
         #evaluate(y_train,preds,m,tt='train')
 
-        test_preds = model.predict(X_test).flatten()
-        evaluate(y_train, train_preds,y_test,test_preds,m,features)
+        dev_preds = model.predict(X_dev).flatten()
+        evaluate(y_train, train_preds,y_dev,dev_preds,m,features)
