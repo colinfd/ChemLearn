@@ -10,7 +10,7 @@ lr = 1e-3
 weight_decay = 0.
 n_epochs = 150
 batch_size = 8
-variational = True
+variational = False
 std_dev_multiplier = 0.2
 variational_loss_weight = 0.2
 use_moments = False
@@ -92,7 +92,6 @@ else:
 		print('Begin Epoch {}'.format(epoch+1))
 		print('train: ', losses[epoch])
 		print('val: ', MSE, MAE)
-
 
 
 x_plot = np.arange(n_epochs) + 1

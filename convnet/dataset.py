@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 import numpy as np
 import os
 import matplotlib.pyplot as plt
-from scipy.stats import moment
+#from scipy.stats import moment
 
 class PdosDataset(Dataset):
 	def __init__(self, data_path = '.', data_subset = 'train', noise_scale=0.05, n_moments=3):
@@ -11,11 +11,12 @@ class PdosDataset(Dataset):
 		self.data_subset = data_subset
 		self.noise_scale = noise_scale
 		self.dtype = 'torch.cuda.FloatTensor' if torch.cuda.is_available() else 'torch.FloatTensor'
-		load = np.load('data/X_{}.npy'.format(data_subset)) # [:, :-2]
-		self.X_data = np.zeros((load.shape[0], 4, load.shape[2]))
-		self.X_data[:,:2,:] = load
-		self.X_data[:,2] = self.X_data[:,0] + self.X_data[:,1]
-		self.X_data[:,3] = self.X_data[:,0] * self.X_data[:,1]
+		self.X_data = np.load('data/X_{}.npy'.format(data_subset)) # [:, :-2]
+		#load = np.load('data/X_{}.npy'.format(data_subset)) # [:, :-2]
+		#self.X_data = np.zeros((load.shape[0], 4, load.shape[2]))
+		#self.X_data[:,:2,:] = load
+		#self.X_data[:,2] = self.X_data[:,0] + self.X_data[:,1]
+		#self.X_data[:,3] = self.X_data[:,0] * self.X_data[:,1]
 		# ncols = self.X_data.shape[1]
 		# self.X_data = self.X_data[:,np.arange(0, ncols, 6)]
 		self.y_data = np.load('data/y_{}.npy'.format(data_subset))
@@ -38,9 +39,9 @@ class PdosDataset(Dataset):
 
 	def __getitem__(self, idx):
 		X = self.X_data[idx, :]
-		if self.data_subset == 'train':
-			noise = np.random.normal(scale=self.noise_scale, size=X.shape)
-			X += noise
+		#if self.data_subset == 'train':
+		#	noise = np.random.normal(scale=self.noise_scale, size=X.shape)
+		#	X += noise
 		X = torch.from_numpy(X).type(self.dtype)
 		y = torch.from_numpy(np.array([self.y_data[idx]])).type(self.dtype)
 		return (X, y)

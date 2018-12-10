@@ -1,5 +1,5 @@
 import torch
-from scipy.stats import moment
+#from scipy.stats import moment
 import numpy as np
 
 class PdosModel(torch.nn.Module):
@@ -7,12 +7,17 @@ class PdosModel(torch.nn.Module):
 		super(PdosModel, self).__init__()
 		# self.conv1 = ConvUnit(1,8)
 		self.convlayers = torch.nn.Sequential(
-			ConvUnit(4,16),
-			ConvUnit(16,16),
-			ConvUnit(16,8),
+			#ConvUnit(4,16),
+			#ConvUnit(16,16),
+			#ConvUnit(16,8),
+			ConvUnit(2,8),
+			ConvUnit(8,8),
+			ConvUnit(8,8),
+			ConvUnit(8,8),
 		)
 		self.fc = torch.nn.Sequential(
-			torch.nn.Linear(40,30),
+			torch.nn.Linear(8,30),
+			#torch.nn.Linear(40,30),
 			torch.nn.PReLU(),
 			torch.nn.Linear(30,1)
 		)
@@ -49,12 +54,16 @@ class VariationalModel(torch.nn.Module):
 
 		# self.conv1 = ConvUnit(1,8)
 		self.convlayers = torch.nn.Sequential(
-			ConvUnit(4,16),
-			ConvUnit(16,16),
-			ConvUnit(16,8),
+			#ConvUnit(4,16),
+			#ConvUnit(16,16),
+			#ConvUnit(16,8),
+			ConvUnit(2,8),
+			ConvUnit(8,8),
+			ConvUnit(8,8),
+			ConvUnit(8,8),
 		)
-		self.encoder_mu = torch.nn.Linear(40, 30)
-		self.encoder_logvar = torch.nn.Linear(40, 30)
+		self.encoder_mu = torch.nn.Linear(8, 30)
+		self.encoder_logvar = torch.nn.Linear(8, 30)
 		
 		self.decoder = torch.nn.Sequential(
 			torch.nn.Linear(30, 30),
