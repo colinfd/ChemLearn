@@ -6,20 +6,21 @@ import matplotlib.pyplot as plt
 #from scipy.stats import moment
 
 class PdosDataset(Dataset):
-        def __init__(self, data_path = '.', data_subset = 'train', noise_scale=0.05, n_moments=3):
+        def __init__(self, data_path = '.', data_subset = 'train', noise_scale=0.05, n_moments=3,split_type='comp_rxn'):
                 super(PdosDataset, self).__init__()
                 self.data_subset = data_subset
                 self.noise_scale = noise_scale
                 self.dtype = 'torch.cuda.FloatTensor' if torch.cuda.is_available() else 'torch.FloatTensor'
+                X_data = np.load('data/X_%s_%s.npy'%(split_type,data_subset))
+                y_data = np.load('data/y_%s_%s.npy'%(split_type,data_subset))
                 #For learning curves
-                X_data = np.load('data/X_{}.npy'.format(data_subset))
                 i = 10
                 if data_subset=='train':
                     self.X_data = X_data[0:X_data.shape[0]//10*i]
-                    self.y_data = np.load('data/y_{}.npy'.format(data_subset))[0:X_data.shape[0]//10*i]
+                    self.y_data = y_data[0:X_data.shape[0]//10*i]
                 else:
                     self.X_data = X_data
-                    self.y_data = np.load('data/y_{}.npy'.format(data_subset))
+                    self.y_data = y_data
                 #self.X_data = np.load('data/X_{}.npy'.format(data_subset)) # [:, :-2]
                 #load = np.load('data/X_{}.npy'.format(data_subset)) # [:, :-2]
                 #self.X_data = np.zeros((load.shape[0], 4, load.shape[2]))
