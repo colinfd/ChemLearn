@@ -16,8 +16,25 @@ X_train, X_dev, X_test, y_train, y_dev, y_test = split_by_cols(df,X,y,['comp','a
 #X_train, X_dev, X_test, y_train, y_dev, y_test = split_by_cols(df,X,y,['comp'])
 #X_train, X_dev, X_test, y_train, y_dev, y_test = split_by_cols(df,X,y,['ads_a','ads_b'])
 
-model = CatBoostRegressor(loss_function='MAE',iterations=1e4,learning_rate=0.06)#,logging_level='Silent')#,use_best_model=True)
+"""
+frac = 1
+m = X_train.shape[0]
+X_train = X_train[:int(frac*m)]
+y_train = y_train[:int(frac*m)]
+model = CatBoostRegressor(loss_function='MAE',iterations=3e4,learning_rate=0.03)#,logging_level='Silent')#,use_best_model=True)
 model.fit(X_train,y_train,eval_set=(X_dev,y_dev))
+
+exit()
+"""
+
+model = CatBoostRegressor(loss_function='MAE',iterations=1.2e4)
+model.fit(X_train,y_train,eval_set=(X_dev,y_dev))
+y_test_pred = model.predict(X_test)
+y_train_pred = model.predict(X_train)
+
+np.save('boost_y_test.npy',y_test)
+np.save('boost_y_test_pred.npy',y_test_pred)
+np.save('boost_y_train_pred.npy',y_train_pred)
 
 exit()
 
