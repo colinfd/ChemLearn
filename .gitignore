@@ -4,3 +4,4 @@
 *.txt
 *.pdf
 *catboost_info*
+deprecated/*

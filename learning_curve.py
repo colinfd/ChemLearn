@@ -11,6 +11,11 @@ from scipy.stats import randint as sp_randint
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.preprocessing import StandardScaler
 
+"""
+Generate learning curve numpy arrays for LR, RF, and KRR
+and stores them in the learning_curve directory
+"""
+
 def evaluate(model, test_features, test_labels):
     predictions = model.predict(test_features)
     errors = abs(predictions - test_labels)
@@ -18,7 +23,6 @@ def evaluate(model, test_features, test_labels):
     #print('Model Performance')
     #print('Average Error: {:0.4f} eV.'.format(mae))
     return mae
-
 
 df = pickle.load(open('data/pairs_pdos.pkl'))
 
@@ -29,14 +33,15 @@ for feature in features:
     for m in models:
         if ( m == 'lr' or m == 'krr' ) and feature == 'pdos':
             continue
-        
         if feature == 'moments':
             X,y = train_prep(df)
         elif feature == 'pdos':
             X,y = train_prep_pdos(df,stack=False,include_WF=True,dE=0.1)
         
-        np.random.seed(42)
+        np.random.seed(100)
         X_train,X_dev,X_test,y_train,y_dev,y_test = split_by_cols(df,X,y,['comp','ads_a','ads_b'])
+        
+        #For each model, optimal hyperparameters included here
         if m == 'rf':
             if feature == 'pdos':	    
                 model = ensemble.RandomForestRegressor(bootstrap=False, criterion='mse', max_depth=18,
@@ -60,7 +65,8 @@ for feature in features:
             X_train = scaler.transform(X_train)
             X_dev = scaler.transform(X_dev)
             model = KernelRidge(alpha=0.00089, coef0=1, degree=3, gamma=0.04545, kernel='rbf', kernel_params=None)
-
+    
+        #Split train data and train models on subsets of data
         num_examples = X_train.shape[0]
         mae_dev = np.zeros(10)
         mae_train = np.zeros(10)
@@ -73,8 +79,3 @@ for feature in features:
         np.save('learning_curve/mae_train_%s_%s.npy'%(m, feature),mae_train)
         np.save('learning_curve/mae_dev_%s_%s.npy'%(m, feature),mae_dev)
         
-        plt.plot(mae_dev,label=m+' '+feature+' dev')
-        plt.plot(mae_train,label=m+' '+feature+' train')
-plt.legend()
-plt.ylim(0,1.5)
-plt.savefig('learning_curve/learning_curve.pdf')

@@ -15,8 +15,8 @@ std_dev_multiplier = 0.2
 variational_loss_weight = 0.2
 use_moments = False
 
-split_type = 'comp_rxn'
-
+#Change train test split type for training
+split_type = 'comp_rxn'#comp, rxn, comp_rxn or random
 
 dataset = PdosDataset(data_subset = 'train', split_type=split_type)
 dataloader = DataLoader(dataset, batch_size = batch_size)
