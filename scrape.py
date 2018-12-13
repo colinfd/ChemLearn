@@ -154,7 +154,7 @@ if __name__ == '__main__':
     delim='\t'
     n=10
     if initialize == True:
-        txt = open('rawdata.txt','w') #w if delete all
+        txt = open('data/rawdata.txt','w') #w if delete all
         strmom = ' '.join(['moment_%i'%(i) for i in range(n)])
         #headers = 'composition bulk_structure facet cell_size adsorbate site energy WF atoms_init_json atoms_rel_json rmsd moments eng_vec pdos'.replace(' ',delim)
         #headers = ('composition bulk_structure facet cell_size adsorbate site energy WF atoms_init_json atoms_rel_json rmsd %s eng_vec pdos'%(strmom)).replace(' ',delim)
@@ -162,8 +162,8 @@ if __name__ == '__main__':
         print >> txt, headers
         lines = None
     else:
-        txt = open('rawdata.txt','a')
-        lines = open('rawdata.txt','r').readlines()
+        txt = open('data/rawdata.txt','a')
+        lines = open('data/rawdata.txt','r').readlines()
 
     for root in roots:
         #print root

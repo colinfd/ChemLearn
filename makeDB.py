@@ -90,7 +90,7 @@ if __name__=='__main__':
     """
     #Read in rawdata as pd df
     if len(sys.argv) > 1 and sys.argv[1] == '-r':
-        filename ='rawdata.txt'
+        filename ='data/rawdata.txt'
         df = pd.read_csv(filename, sep='\t',dtype={'facet':str})
 
         if len(sys.argv) > 2 and sys.argv[2] == '-p':
