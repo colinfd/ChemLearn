@@ -8,6 +8,9 @@ from scipy.stats import norm,uniform
 import numpy as np
 import pickle
 
+"""
+Used to generate trained GB models with different train-test splits.
+"""
 
 np.random.seed(100)
 

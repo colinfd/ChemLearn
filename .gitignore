@@ -3,3 +3,4 @@
 *.pkl
 *.txt
 *.pdf
+*catboost_info*

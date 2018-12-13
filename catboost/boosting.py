@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0,'../')
 from ML_prep import load_data, split_by_cols, train_prep_pdos, train_prep
 from sklearn.model_selection import RandomizedSearchCV
 from skopt import BayesSearchCV
@@ -6,10 +8,14 @@ from scipy.stats import norm,uniform
 import numpy as np
 import pickle
 
+"""
+General script for training GB models with Catboost
+"""
+
 type = 'pdos'
 np.random.seed(100)
 
-df = pickle.load(open('data/pairs_pdos.pkl'))
+df = pickle.load(open('../data/pairs_pdos.pkl'))
 X,y = train_prep_pdos(df,include_WF=True,dE=0.1)
 #X,y = train_prep(df,include_WF=True)
 X_train, X_dev, X_test, y_train, y_dev, y_test = split_by_cols(df,X,y,['comp','ads_a','ads_b'])
